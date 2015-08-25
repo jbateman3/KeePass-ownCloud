@@ -27,6 +27,7 @@ http://www.flaticon.com/free-icon/class-notes_78686
 - Added an option to hide the password strength field
 - Removed text below the passwords, its annoying
 - Try to copy username or password to clipboard when clicked on
+- Changed the "Search for" box to only search password titles
 - Creation time sorted to the second
 - Disabled all options for editing or creating entries
 - Changed to load passwords from a kdbx file in the users cloud instead of a database
