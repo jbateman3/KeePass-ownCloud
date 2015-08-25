@@ -146,10 +146,19 @@
 			},
 			setUserKey: function(key, value) {
 				var deferred = $.Deferred();
+
+				var info = {
+					setting: key,
+					value: value
+				};
+
+				// send request
 				$.ajax({
-					url: this._baseUrl + '/' + key + '/' + value,
-					method: 'POST'
-				}).done(function( data ) {
+					url: this._baseUrl,
+					method: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify(info)
+				}).done(function(response) {
 					deferred.resolve(data);
 				}).fail(function() {
 					alert('Error while saving key: ' + key);;
@@ -348,6 +357,10 @@
 				//Open database button clicked
 				$('#open_database').click(function() {
 
+					//Save the database path for next time
+					var settings = new Settings(OC.generateUrl('/apps/passwords/settings'));
+					settings.setUserKey('database_path', $('#database_path_text').val());
+					
 					var info = {
 						path: $('#database_path_text').val(),
 						pass: $('#password_text').val()
@@ -369,10 +382,7 @@
 					}).fail(function() {
 						alert(t('passwords', 'Error: Could not complete POST.'));
 					});
-
-					//Save the database path for next time
-					var settings = new Settings(OC.generateUrl('/apps/passwords/settings'));
-					settings.setUserKey('database_path', $('#database_path_text').val()); 
+ 
 				});
 								
 			},
