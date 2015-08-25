@@ -25,8 +25,34 @@ class PasswordController extends Controller {
      * @NoAdminRequired
      */
     public function index() {
-        return new DataResponse($this->service->findAll($this->userId));
+        return ""; // new DataResponse($this->service->findAll($this->userId));
     }
+
+
+    /**
+     * @NoAdminRequired
+     *
+     * @param string $path
+     * @param string $pass
+     */
+    public function indexNew($path, $pass) {
+        return new DataResponse($this->service->loadKeePass($this->userId, $path, $pass));; //$this->service->create($loginname, $website, $address, $pass, $notes, $this->userId);
+    }
+
+    /**
+     * @NoAdminRequired
+     *
+     * @param string $path
+     * @param string $pass
+     */
+    public function validatePath($path, $pass) {
+        if (\OC\Files\Filesystem::file_exists ($path)){
+		return "true";
+	}else{
+		return  $path;
+	}
+    }
+
 
     /**
      * @NoAdminRequired

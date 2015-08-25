@@ -26,6 +26,11 @@
 		<label>
 			<input class="check" type="checkbox" id="hide_attributes"> <?php p($l->t('Hide columns') . ': |  a-z  |  A-Z  |  0-9  |  !@#  |'); ?>
 		</label>
+		<br>
+                <label>
+                        <input class="check" type="checkbox" id="hide_Strength_attributes"> <?php p($l->t('Hide column') . ': Strength'); ?>
+                </label>
+
 	</div>
 
 	<br>

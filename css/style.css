@@ -17,13 +17,16 @@ tr {
 	cursor: pointer;
 }
 .actual-note {
-	opacity: 0 !important;
+	background-image: none !important;
+	opacity: 1 !important;
 }
 .actual-note:hover {
 	opacity: 0.3 !important;
+	background-image: url(../img/notepad.svg) !important;
 }
 #PasswordsTableContent .icon-notes {
-	background-image: url(../img/notes.svg);
+	background-image: url(../img/notepad.svg);
+	background-size: 75% 75%;
 }
 .icon-notes span {
 	display: none;
@@ -40,9 +43,22 @@ tr {
 	vertical-align: middle;
 	opacity: 0.5;
 	visibility: hidden;
+	display: none; /* Disable edititing options */
 }
+
+.icon-delete{
+	display: none; /* Disable edititing options */
+}
+
+#column_delete{
+        display: none; /* Disable edititing options */
+}
+
 td:hover > .edit_value {
-	visibility: visible;
+/*	visibility: visible; */  /* Disable edititing options */
+}
+#app-settings-csv{
+        display: none; /* Disable edititing options */
 }
 .edit_value:hover {
 	opacity: 1;
@@ -64,6 +80,7 @@ td:hover > .edit_value {
 	margin-left: 5%;
 	margin-right: 5%;
 	padding: 4%;
+	display: none;
 }
 .icon-passwords {
 	background-image: url(../img/app_black.svg);
@@ -134,6 +151,7 @@ h3 {
 #PasswordsTable table {
 	border: 0;
 	width: 100%;
+	table-layout: fixed;
 }
 #PasswordsTable table th {
 	color: #555;
@@ -165,6 +183,25 @@ td #FieldLengthCheck {
 th#FieldLengthCheck {
 	/* align head: 16px for notes img, 5px for margin-left of notes img: */
 	padding-right: 21px;
+	width: 20%;
+}
+#column_delete {
+	width: 5%;
+}
+#column_notes {
+	width: 5%;
+}
+#column_website {
+	width: 20%;
+}
+#hide2 {
+	width: 10%;
+}
+#hide3 {
+	width: 10%;
+}
+#database_path_text{
+	width: 400px;
 }
 #FieldLengthCheck:hover {
 	text-decoration: underline;
@@ -211,6 +248,9 @@ orange {
 .hide_attributes {
 	display: none;
 }
+.hide_Strength_attributes{
+        display: none;
+}
 .hidevalue {
 	text-indent: -9999px;
 	line-height: 0;
@@ -223,7 +263,7 @@ orange {
 	content: "";
 }
 .hidevalue::after {
-	content: "*****";
+	content: "*******";
 	text-indent: 0;
 	display: block;
 	margin-top: -8px;
@@ -309,10 +349,9 @@ td[title]:hover:after {
 
 #popup {
 	position: absolute;
-	top: 15%;
-	left: 50%;
-	width: 300px;
-	margin-left: -150px;
+	top: 10%;
+	left: 25%;
+	width: 50%;
 	z-index: 9999;
 }
 #popupTitle {
@@ -349,7 +388,11 @@ p#generate_strength_popup {
 	margin-left: 25px;
 	margin-right: 5px;
 }
-#accept,
+#accept{
+        float: right;
+        margin-top: 6px;
+	visibility: hidden; /* Disable edititing options */
+}
 #cancel {
 	float: right;
 	margin-top: 6px;
@@ -372,6 +415,9 @@ p#generate_strength_popup {
 	#hide1 {
 		display: none;
 	}
+	#database_path_text{
+	        width: 50%;
+	}
 }
 @media screen and (max-width: 1050px) {
 	/* length and creation date */
@@ -385,7 +431,7 @@ p#generate_strength_popup {
 		display: none;
 	}
 }
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 500px) {
 	/* mobile phone etc. */
 	#PasswordsTable table {
 		table-layout: fixed;
@@ -394,15 +440,22 @@ p#generate_strength_popup {
 	#PasswordsTableContent .icon-delete,
 	#PasswordsTableContent .icon-notes,
 	#PasswordsTableContent .icon-share {
-		background-size: 20% !important;
+		background-size: 80% !important;
 	}
 	#PasswordsTable table td {
 		word-wrap: break-word;
 	}
 }
-@media screen and (max-width: 450px) {
+@media screen and (max-width: 350px) {
 	/* mobile phone etc. */
 	#PasswordsTable table {
 		font-size: 60%;
 	}
 }
+@media screen and (max-height: 380px) {
+	#emptycontent {
+		position: static;
+		margin: 3% 3%;
+	}
+}
+

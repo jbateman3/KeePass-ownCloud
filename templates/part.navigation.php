@@ -15,7 +15,7 @@
 		<input id="search_clear" type="button" value="<?php p($l->t("Clear")); ?>">
 	</div>
 
-	<div id="add_password_div">
+	<div id="add_password_div";>
 		<h3><?php p($l->t("Add new password")); ?></h3>
 		<img src="<?php p(\OC::$server->getURLGenerator()->imagePath('passwords', 'blank.svg')); ?>" class="icon-link"><input type="text" id="new_address" placeholder="<?php p($l->t("Full URL (optional)")); ?>" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 		<img src="<?php p(\OC::$server->getURLGenerator()->imagePath('passwords', 'blank.svg')); ?>" class="icon-rename"><textarea id="new_notes" placeholder="<?php p($l->t("Notes (optional)")); ?>"></textarea>

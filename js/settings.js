@@ -177,7 +177,8 @@ $(document).ready(function() {
 	$('#hide_usernames').prop('checked', (settings.getKey('hide_usernames').toLowerCase() == 'true'));
 	$('#hide_passwords').prop('checked', (settings.getKey('hide_passwords').toLowerCase() == 'true'));
 	$('#hide_attributes').prop('checked', (settings.getKey('hide_attributes').toLowerCase() == 'true'));
-	
+	$('#hide_Strength_attributes').prop('checked', (settings.getKey('hide_Strength_attributes').toLowerCase() == 'true'));	
+
 	// save it all
 	$('#savepersonal').click(function() {
 
@@ -187,6 +188,7 @@ $(document).ready(function() {
 		settings.setUserKey('hide_usernames', $('#hide_usernames').is(':checked'));
 		settings.setUserKey('hide_passwords', $('#hide_passwords').is(':checked'));
 		settings.setUserKey('hide_attributes', $('#hide_attributes').is(':checked'));
+                settings.setUserKey('hide_Strength_attributes', $('#hide_Strength_attributes').is(':checked'));
 
 		// no error, so:
 		if ($('.msg-passwords').text = t('passwords', 'Saving...')) {

@@ -8,6 +8,11 @@ use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 
 use OCA\Passwords\Db\Password;
 use OCA\Passwords\Db\PasswordMapper;
+use OCA\Passwords\Controller\lib\keepassphp\keepassphp;
+use OCA\Passwords\Controller\lib\keepassphp\keepass\CompositeKey;
+use OCA\Passwords\Controller\lib\keepassphp\keepass\KeyFromPassword;
+use OCA\Passwords\Controller\lib\keepassphp\keepass\KdbxImporter;
+
 
 class PasswordService {
 
@@ -15,6 +20,40 @@ class PasswordService {
 
     public function __construct(PasswordMapper $mapper){
         $this->mapper = $mapper;
+    }
+
+    public function loadKeePass($userId, $path, $pass){
+	$arr = array();
+
+	KeePassPHP::init(true);
+
+	$key = new CompositeKey();
+	$key->addKey(new KeyFromPassword(utf8_encode($pass)));
+	$kdbx = new KdbxImporter($path, $key);
+
+	$entries = $kdbx->parseEntries();
+
+	foreach( $entries as $entry => $value){
+
+		//$creationDate;
+		//$creationTime;
+		list($creationDate, $creationTime) = split($value['CreationTime']. '[TZ]', 2);
+
+	        $array = array(
+		        "id" => 4,
+		        "user_id" => $userId,
+		        "loginname" => $value['UserName'],
+		        "website" => $value['Title'],
+		        "address" => "",
+		        "pass" => $kdbx->getPassword($entry),
+		        "notes" => $value['Notes'],
+		        "creation_date" => $value['CreationTime'] //"2015-08-21"
+       		 );
+ 	       array_push($arr, $array);
+	}
+
+
+	return $arr;
     }
 
     public function findAll($userId) {

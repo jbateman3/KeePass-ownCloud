@@ -144,6 +144,18 @@
 				});
 				return deferred.promise();
 			},
+			setUserKey: function(key, value) {
+				var deferred = $.Deferred();
+				$.ajax({
+					url: this._baseUrl + '/' + key + '/' + value,
+					method: 'POST'
+				}).done(function( data ) {
+					deferred.resolve(data);
+				}).fail(function() {
+					alert('Error while saving key: ' + key);;
+					deferred.reject();
+				});
+			},
 			getKey: function(key) {
 				for (var k in this._settings)
 				{
@@ -195,7 +207,9 @@
 		
 					if ((event.target.tagName == 'DIV' && (col == 1 || col == 2)) 
 						|| (event.target.tagName == 'DIV' && (event.target.className).indexOf('hidevalue') > -1)) {
-						prompt(thead + ':', table.rows[row].cells[col].textContent);
+						if (!copyTextToClipboard(table.rows[row].cells[col].textContent)){
+							prompt('Browser doesn not support automatic coying.\n Copy to clipboard: Ctrl+C, Enter\n ' + thead + ':', table.rows[row].cells[col].textContent);								
+						}
 					}
 					
 					if (event.target.className == 'edit_value' || (col == 13)) {
@@ -297,6 +311,69 @@
 
 				});
 
+				// validate path exists
+				$("#database_path_text").keyup(function() {
+ 					var info = {
+                                                path: $('#database_path_text').val(),
+                                                pass: $('#password_text').val()
+						};
+                                        // send request
+                                        $.ajax({
+                                                url: OC.generateUrl('/apps/passwords/password'),
+                                                method: 'POST',
+                                                contentType: 'application/json',
+                                                data: JSON.stringify(info)
+                                        }).done(function(response) {
+                                                if (response == "true"){
+							$("#database_path_text").css("background-color", "green");
+						}else if (response == "false"){
+							 $("#database_path_text").css("background-color", "red");
+						}else{
+							 $("#database_path_text").css("background-color", "blue");
+						}
+                                        }).fail(function() {
+                                                alert(t('passwords', 'Error: Could not complete POST.'));
+                                        });
+
+				});
+
+				//enter is pressed in the pasword box
+				$("#password_text").keyup(function(e) {
+ 					var code = e.keyCode || e.which;
+ 					if(code == 13) { //Enter keycode
+						$('#open_database').click();
+ 					}
+				});
+
+				//Open database button clicked
+				$('#open_database').click(function() {
+
+					var info = {
+						path: $('#database_path_text').val(),
+						pass: $('#password_text').val()
+					};
+
+					// send request
+					$.ajax({
+						url: OC.generateUrl('/apps/passwords/passwords'),
+						method: 'POST',
+						contentType: 'application/json',
+						data: JSON.stringify(info)
+					}).done(function(response) {
+						var passwords = new Passwords(OC.generateUrl('/apps/passwords/passwords'));
+						var view = new View(passwords);
+						passwords._activePassword = undefined;
+						passwords._passwords = response;
+						view.render();
+						
+					}).fail(function() {
+						alert(t('passwords', 'Error: Could not complete POST.'));
+					});
+
+					//Save the database path for next time
+					var settings = new Settings(OC.generateUrl('/apps/passwords/settings'));
+					settings.setUserKey('database_path', $('#database_path_text').val()); 
+				});
 								
 			},
 			renderNavigation: function() {		
@@ -304,6 +381,7 @@
 				// set settings
 				var settings = new Settings(OC.generateUrl('/apps/passwords/settings'));
 				settings.load();
+				$('#database_path_text').val(settings.getKey('database_path'));
 				if ((settings.getKey('backup_allowed').toLowerCase() == 'true') == false) {
 					// was already hidden with CSS at default for IE7 and lower
 					// Now remove it from DOM (doesn't work on IE7 and lower)
@@ -323,6 +401,7 @@
 				$('#app-settings').attr('hide-passwords', settings.getKey('hide_passwords').toLowerCase() == 'true');
 				$('#app-settings').attr('hide-usernames', settings.getKey('hide_usernames').toLowerCase() == 'true');;
 				$('#app-settings').attr('hide-attributes', settings.getKey('hide_attributes').toLowerCase() == 'true');
+                                $('#app-settings').attr('hide_Strength_attributes', settings.getKey('hide_Strength_attributes').toLowerCase() == 'true');
 
 				// download backup
 				$('#backupDL').click(function() {
@@ -413,8 +492,15 @@
 
 					// filter
 					$rows.show().filter(function() {
-						var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-						return !~text.indexOf(val);
+						//var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+						var text2 = this.innerHTML.match(/>([^<\n]..*?)</);
+						if (text2 != null) {
+						var title = text2[1];
+						title = title.toLowerCase();
+						return !~title.indexOf(val);
+						}else{
+							return false;
+						}
 					}).hide();
 				});
 
@@ -635,7 +721,18 @@ function formatTable(update_only) {
 		var hide_attributes = $('#app-settings').attr("hide-attributes");
 		if (hide_attributes == 'false') {
 			$('.hide_attributes').removeClass('hide_attributes');
+                        //$('#column_delete').css("width", "");
+			//$('#column_notes').css("width", "");
+			//$('#column_website').css("width", "");
+			//$('#hide2').css("width", "");
+			//$('#hide3').css("width", "");
+                        $('th#hide1').css("width", "4%");
 		}
+
+                var hide_Strength_attributes = $('#app-settings').attr("hide_Strength_attributes");
+                if (hide_Strength_attributes == 'false') {
+                        $('.hide_Strength_attributes').removeClass('hide_Strength_attributes');
+                }
 
 		for (var i = 1; i < table.rows.length; i++) {
 			for (var j = 0; j < table.rows[i].cells.length; j++)
@@ -674,24 +771,26 @@ function formatTable(update_only) {
 				}
 
 				// strength
-				var pass_str = table.rows[i].cells[2].textContent;
-				var strength_int = strength_func(pass_str);
-				table.rows[i].cells[3].textContent = strength_int;
-				table.rows[i].cells[3].textContent = t('passwords', strength_str(pass_str, true)) + ' (' + strength_int + ')';
-				table.rows[i].cells[3].setAttribute('sorttable_customkey', 1 / strength_int);
-				switch (strength_str(pass_str, true)) {
-					case t('passwords', 'Weak'):
-						table.rows[i].cells[3].className = 'red';
-						table.rows[i].cells[2].className += ' red';
-						break;
-					case t('passwords', 'Moderate'):
-						table.rows[i].cells[3].className = 'orange';
-						table.rows[i].cells[2].className += ' orange';
-						break;
-					case t('passwords', 'Strong'):
-						table.rows[i].cells[3].className = 'green';
-						table.rows[i].cells[2].className += ' green';
-						break;
+				if( hide_Strength_attributes != "true"){
+					var pass_str = table.rows[i].cells[2].textContent;
+					var strength_int = strength_func(pass_str);
+					table.rows[i].cells[3].textContent = strength_int;
+						table.rows[i].cells[3].textContent = t('passwords', strength_str(pass_str, true)) + ' (' + strength_int + ')';
+					table.rows[i].cells[3].setAttribute('sorttable_customkey', 1 / strength_int);
+					switch (strength_str(pass_str, true)) {
+						case t('passwords', 'Weak'):
+							table.rows[i].cells[3].className = 'red';
+							table.rows[i].cells[2].className += ' red';
+							break;
+						case t('passwords', 'Moderate'):
+							table.rows[i].cells[3].className = 'orange';
+							table.rows[i].cells[2].className += ' orange';
+							break;
+						case t('passwords', 'Strong'):
+								table.rows[i].cells[3].className = 'green';
+							table.rows[i].cells[2].className += ' green';
+							break;
+					}
 				}
 
 				// length
@@ -710,7 +809,7 @@ function formatTable(update_only) {
 						+ '-' + ('-0' + dateToday.getDate()).slice(-2);
 				}
 
-				var datePart = table.rows[i].cells[9].textContent.split('-');
+				var datePart = table.rows[i].cells[9].textContent.split(/[TZ\-:]/);
 				var dateRowEntry = new Date(table.rows[i].cells[9].textContent);
 				// colourize date
 				var days_orange = $('#app-settings').attr("days-orange");
@@ -748,7 +847,7 @@ function formatTable(update_only) {
 				}
 
 				// sort correctly (YYYYMMDD)
-				var YYYYMMDD = datePart[0].toString() + datePart[1].toString() + datePart[2].toString();
+				var YYYYMMDD = datePart[0].toString() + datePart[1].toString() + datePart[2].toString() + datePart[3].toString() + datePart[4].toString() + datePart[5].toString();
 				table.rows[i].cells[9].setAttribute('sorttable_customkey', YYYYMMDD);
 
 				var Month;
@@ -1131,6 +1230,9 @@ function update_pwcount() {
 	if (count == 0) {
 		$("#emptycontent").show();
 		$("#PasswordsTable").hide();
+	}else{
+                $("#emptycontent").hide();
+                $("#PasswordsTable").show();
 	}
 }
 
@@ -1259,6 +1361,36 @@ function backupPasswords() {
 }
 function destroyClickedElement(event) {
 	document.body.removeChild(event.target);
+}
+function copyTextToClipboard(text) {
+	if (!document.queryCommandSupported('copy'))
+		return;
+	
+	var textArea = document.createElement("textarea");
+	
+	textArea.style.position = 'fixed';
+	textArea.style.top = 0;
+	textArea.style.left = 0;
+	textArea.style.width = '2em';
+	textArea.style.height = '2em';
+	textArea.style.padding = 0;
+	textArea.style.border = 'none';
+	textArea.style.outline = 'none';
+	textArea.style.boxShadow = 'none';
+	textArea.style.background = 'transparent';
+	
+	textArea.value = text;
+	document.body.appendChild(textArea);
+	textArea.select();
+	
+	var successful = false;
+	
+	try {
+	successful = document.execCommand('copy');
+	} catch (err) {  }
+	
+	document.body.removeChild(textArea);
+	return successful;
 }
 function uploadCSV(event) {
 
@@ -1403,9 +1535,9 @@ function popUp(title, value, column, address_value) {
 	$('<span/>', {text:title}).appendTo($('#popupTitle'));
 
 	$('<div/>', {id: 'popupContent'}).appendTo($('#popup'));	
-	$('<p/>', {text:t('passwords', 'Enter a new value and press Save to keep the new value.\nThis cannot be undone.')}).appendTo($('#popupContent'));
+	//$('<p/>', {text:t('passwords', 'Enter a new value and press Save to keep the new value.\nThis cannot be undone.')}).appendTo($('#popupContent'));
 	if (column == 13) {
-		$('<textarea/>', {id:"new_value_popup", rows:"5"}).val(value).appendTo($('#popupContent'));
+		$('<textarea/>', {id:"new_value_popup", rows:"10"}).val(value).appendTo($('#popupContent'));
 	} else {
 		$('<input/>', {type:'text', id:"new_value_popup", autocorrect:'off', autocapitalize:'off', spellcheck:'false'}).val(value).appendTo($('#popupContent'));
 		if (column == 2) {
